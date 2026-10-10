@@ -2,6 +2,7 @@
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import FlowIcon from './components/FlowIcon.vue'
 import {
+  BRAND_DOMAIN,
   BRAND_MARK_URL,
   BRAND_NAME,
   BRAND_SLUG,
@@ -121,6 +122,26 @@ const filteredMarkets = computed(() => {
 const selectedMarketId = ref(markets[0].id)
 const selectedMarket = computed(() => markets.find((market) => market.id === selectedMarketId.value) || markets[0])
 const secondaryToken = computed(() => NO_LABEL)
+
+// Six peer readings resolve into the displayed quorum level. The values are
+// deterministic fixtures so the lattice always matches the selected event.
+const PEER_COUNT = 6
+const peerReadings = computed(() => {
+  const base = selectedMarket.value.probability
+  return Array.from({ length: PEER_COUNT }, (_, index) => {
+    const drift = ((index * 37 + selectedMarket.value.depth * 11) % 17) - 8
+    return Math.min(96, Math.max(4, Math.round((base + drift) * 10) / 10))
+  })
+})
+const quorumLevel = computed(() => {
+  const values = peerReadings.value
+  return Math.round(values.reduce((total, value) => total + value, 0) / values.length * 10) / 10
+})
+const peerSpread = computed(() => {
+  const values = peerReadings.value
+  return Math.round((Math.max(...values) - Math.min(...values)) * 10) / 10
+})
+const leadPeerIndex = computed(() => peerReadings.value.indexOf(Math.max(...peerReadings.value)))
 const allocation = ref(50)
 const allocationLabel = computed(() => `${allocation.value}% ${displayToken(selectedMarket.value.token)} / ${100 - allocation.value}% ${secondaryToken.value}`)
 const positions = ref([])
@@ -343,6 +364,13 @@ onBeforeUnmount(() => {
       <div class="rail-bottom">
         <div class="rail-mode"><span class="mode-mark"><FlowIcon name="shield" /></span><div><strong>Read-only</strong><small>Practice environment</small></div></div>
         <div class="rail-token"><span class="token-mark">Y</span><div><small>Outcome asset</small><strong>{{ YES_LABEL }} / {{ NO_LABEL }}</strong></div><span class="asset-state"><i></i></span></div>
+        <div class="rail-lattice">
+          <div class="rail-lattice-head"><span>CONSENSUS LATTICE</span><b>{{ PEER_COUNT }}/{{ PEER_COUNT }}</b></div>
+          <div class="rail-peers" aria-hidden="true">
+            <i v-for="(value, index) in peerReadings" :key="index" :class="{ on: true, lead: index === leadPeerIndex }"></i>
+          </div>
+          <div class="rail-lattice-foot"><span>QUORUM</span><b>{{ quorumLevel }}%</b></div>
+        </div>
         <a v-if="SOCIAL_URL" class="rail-social" :href="SOCIAL_URL" target="_blank" rel="noopener noreferrer">Follow on X <FlowIcon name="external" /></a>
       </div>
     </aside>
@@ -350,7 +378,7 @@ onBeforeUnmount(() => {
     <div class="shell-main">
       <header class="site-header">
         <div class="header-context">
-          <span class="header-label">MARKET WORKSPACE</span>
+          <span class="header-label">CONSENSUS TERMINAL</span>
           <span class="header-divider">/</span>
           <span class="header-page">{{ labels[activePage] }}</span>
         </div>
@@ -372,9 +400,9 @@ onBeforeUnmount(() => {
         <section v-if="activePage === 'Overview'" class="desk-view">
           <div class="workspace-intro">
             <div>
-              <span class="eyebrow">OVERVIEW <b class="eyebrow-separator">/</b> {{ CLUSTER_LABEL }}</span>
-              <h1>Market overview</h1>
-              <p>{{ BRAND_TAGLINE }} <span class="copy-divider">/</span> Compare scenarios and save local position previews.</p>
+              <span class="eyebrow">QUORUM <b class="eyebrow-separator">/</b> {{ CLUSTER_LABEL }}</span>
+              <h1>Consensus desk</h1>
+              <p>{{ BRAND_TAGLINE }} <span class="copy-divider">/</span> Six peer readings resolve into one shown level, and every outcome preview stays local.</p>
             </div>
             <div class="intro-actions">
               <span class="demo-badge"><i></i> ILLUSTRATIVE DATA</span>
@@ -392,7 +420,7 @@ onBeforeUnmount(() => {
           <div class="trading-workspace">
             <section class="market-board" aria-labelledby="market-board-title">
               <div class="panel-heading">
-                <div><span class="eyebrow">MARKET VIEW</span><h2 id="market-board-title">Markets</h2></div>
+                <div><span class="eyebrow">QUORUM VIEW</span><h2 id="market-board-title">Events</h2></div>
               <button class="link-button" @click="goTo('Markets')">Full event list <FlowIcon name="arrow" /></button>
               </div>
               <div class="market-controls">
@@ -425,10 +453,20 @@ onBeforeUnmount(() => {
                   <div><span class="eyebrow">SELECTED MARKET</span><h3>{{ displayMarketName(selectedMarket) }}</h3></div>
                   <span class="route-badge">{{ displayCategory(selectedMarket.profile) }}</span>
                 </div>
-                <div class="chart-readout"><span>Illustrative probability history</span><b>{{ selectedMarket.probability }}% implied probability</b></div>
+                <div class="chart-readout"><span>PEER CONSENSUS / ILLUSTRATIVE</span><b>{{ quorumLevel }}% quorum level · {{ peerSpread }} pt spread</b></div>
                 <div class="sparkline" aria-hidden="true">
                   <i v-for="n in 32" :key="n" :style="{ height: (18 + ((n * 19 + selectedMarket.probability * 4) % 72)) + '%' }"></i>
                   <span class="chart-cursor"></span>
+                </div>
+                <div class="peer-block">
+                  <div class="peer-block-head"><span>PEER READINGS</span><b>{{ peerSpread }} pt dispersion</b></div>
+                  <div class="peer-grid">
+                    <div v-for="(value, index) in peerReadings" :key="index" class="peer-cell" :class="{ lead: index === leadPeerIndex }">
+                      <span class="peer-id">P{{ index + 1 }}</span>
+                      <b>{{ value }}%</b>
+                      <i :style="{ width: value + '%' }"></i>
+                    </div>
+                  </div>
                 </div>
                 <div class="route-facts"><span><small>Market model</small><strong>{{ selectedMarket.model }}</strong></span><span><small>24h volume</small><strong>${{ selectedMarket.volume }}M</strong></span><span><small>Data state</small><strong>Illustrative</strong></span></div>
               </div>
@@ -456,11 +494,11 @@ onBeforeUnmount(() => {
             </aside>
           </div>
 
-          <div class="disclosure"><FlowIcon name="info" /><span>Market figures are interface fixtures. Wallet access is optional and reads SOL plus outcome shares from {{ CLUSTER_LABEL }}.</span><button class="link-button" @click="openModal('wallet')">Wallet details <FlowIcon name="arrow" /></button></div>
+          <div class="disclosure"><FlowIcon name="info" /><span>Market figures are interface fixtures. Wallet access is optional and reads SOL plus outcome shares from {{ CLUSTER_LABEL }}. Candidate destination {{ BRAND_DOMAIN }} is unregistered.</span><button class="link-button" @click="openModal('wallet')">Wallet details <FlowIcon name="arrow" /></button></div>
         </section>
 
         <section v-else-if="activePage === 'Markets'" class="page-view">
-          <div class="view-heading"><div><span class="eyebrow">EVENT VIEW</span><h1>Markets</h1><p>Compare illustrative outcomes and model a local position.</p></div><span class="count-badge">{{ filteredMarkets.length }} events</span></div>
+          <div class="view-heading"><div><span class="eyebrow">EVENT LATTICE</span><h1>Events</h1><p>Compare illustrative outcomes and model a local position.</p></div><span class="count-badge">{{ filteredMarkets.length }} events</span></div>
           <div class="pool-toolbar">
             <div class="segmented" aria-label="Filter prediction events"><button v-for="option in filterOptions" :key="option.value" :class="{ selected: filter === option.value }" :aria-pressed="filter === option.value" @click="filter = option.value">{{ option.label }}</button></div>
             <label class="search-box"><FlowIcon name="search" /><input v-model="search" type="search" placeholder="Search events" aria-label="Search prediction events"></label>
@@ -504,8 +542,8 @@ onBeforeUnmount(() => {
           <div class="protocol-grid">
             <section class="protocol-card">
               <div class="protocol-mark"><FlowIcon name="community" /></div><span class="eyebrow">TOKEN + PROGRAM</span>
-              <h2>{{ tokenConfigured ? 'Outcome mint configured.' : 'Mint pending.' }}<br>Trading paused.</h2>
-              <p>{{ tokenConfigured ? `The outcome share mint is configured on ${CLUSTER_LABEL}. Market and voting programs are not deployed.` : 'No Solana outcome mint, market program, or voting account is configured in this workspace.' }}</p>
+              <h2>{{ tokenConfigured ? 'Outcome mint configured.' : 'Mint pending.' }}<br>Quorum programs pending.</h2>
+              <p>{{ tokenConfigured ? `The outcome share mint is configured on ${CLUSTER_LABEL}. Consensus, market and voting programs are not deployed.` : 'No Solana outcome mint, consensus program, market program or voting account is configured in this workspace.' }}</p>
               <div class="protocol-status" :class="{ configured: tokenConfigured }"><i></i>{{ tokenConfigured ? `Outcome mint on ${CLUSTER_LABEL}` : 'Waiting for deployment inputs' }}</div>
               <p v-if="tokenConfigured" class="explorer-link"><a :href="TOKEN_EXPLORER_URL" target="_blank" rel="noopener noreferrer">View outcome mint on Explorer <FlowIcon name="external" /></a></p>
             </section>
@@ -579,9 +617,9 @@ onBeforeUnmount(() => {
       <div v-else class="dialog-body">
         <button class="dialog-close icon-button" aria-label="Close guide" title="Close guide" @click="closeModal"><FlowIcon name="close" /></button>
         <div class="dialog-kicker"><span class="route-badge">QUICK GUIDE</span><span>01 / 03</span></div>
-        <h2 id="guide-title">Market workspace</h2>
+        <h2 id="guide-title">Consensus terminal</h2>
         <p class="dialog-lead">{{ BRAND_NAME }} is a {{ CLUSTER_LABEL }} interface for comparing prediction events and saving local outcome models.</p>
-        <div class="guide-list"><div><b>01</b><p><strong>Pick an event.</strong> Probability figures are illustrative and marked as sample data.</p></div><div><b>02</b><p><strong>Set YES / NO.</strong> Enter a practice amount and review the outcome split.</p></div><div><b>03</b><p><strong>Save locally.</strong> No order, settlement, or live market program is available.</p></div></div>
+        <div class="guide-list"><div><b>01</b><p><strong>Pick an event.</strong> Quorum levels and peer readings are illustrative sample data.</p></div><div><b>02</b><p><strong>Set YES / NO.</strong> Enter a practice amount and review the outcome split.</p></div><div><b>03</b><p><strong>Save locally.</strong> No order, settlement, or live consensus program is available.</p></div></div>
         <button class="primary-button full" @click="closeModal">Close guide <FlowIcon name="check" /></button>
       </div>
     </dialog>

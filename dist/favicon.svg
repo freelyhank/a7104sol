@@ -1,8 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="Tidegrid market grid mark">
-  <rect width="400" height="400" rx="72" fill="#18232D"/>
-  <path d="M100 160h200M100 240h200M160 100v200M240 100v200" fill="none" stroke="#415363" stroke-width="8"/>
-  <path d="M88 264h76l52-92h72l48-52" fill="none" stroke="#315ED2" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="88" cy="264" r="23" fill="#FFFFFF"/>
-  <circle cx="216" cy="172" r="23" fill="#FFFFFF"/>
-  <circle cx="336" cy="120" r="23" fill="#17806E"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="Quorelis signal mark">
+  <defs>
+    <linearGradient id="f-signal" x1="108.0" y1="292.0" x2="292.0" y2="108.0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0E9FCC"/>
+      <stop offset="1" stop-color="#38E1FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="88" fill="#070B16"/>
+  <path d="M108.0 292.0L292.0 108.0" fill="none" stroke="url(#f-signal)" stroke-width="60" stroke-linecap="round"/>
+  <circle cx="222.1" cy="222.1" r="25" fill="#EAF6FF"/>
+  <circle cx="292.0" cy="108.0" r="40" fill="#B8FF4F"/>
 </svg>

@@ -1,12 +1,13 @@
-Brand: Tidegrid
-Pronunciation: tide-grid
-Name idea: A clear view of changing market scenarios
-Slug / wordmark: tidegrid
+Brand: Quorelis
+Pronunciation: kwor-EH-lis
+Name idea: A quorum of signals agreeing on one price
+Slug / wordmark: quorelis
 Project token ticker: none introduced
 Technical asset: configured market-asset mint (classic SPL Token on Solana Testnet)
-Tagline: Read the market in context.
+Tagline: Consensus has a price.
 Network: Solana Testnet (cluster configurable through VITE_SOLANA_CLUSTER)
 Product: simulated event contracts, illustrative positions, local practice markets
 Wallet: injected Phantom/Solflare-compatible provider, read-only native SOL and configured market-asset balances
 Deployment: configured market-asset mint deployed; prediction-market execution, settlement and issuance remain pending
-Visual direction: bright market-research workspace, cool white surfaces, cobalt controls, emerald YES states, coral NO/warning states, readable data tables and responsive panels.
+Visual direction: dark on-chain consensus terminal, near-black canvas, layered slate panels, neon cyan consensus lattice, violet peer links, lime YES states, coral NO/warning states, monospace numerals and hash-style metadata.
+Candidate destinations: quorelis.xyz and quorelis.com (read-only registry lookups returned no record); @quorelis; ownership not confirmed.

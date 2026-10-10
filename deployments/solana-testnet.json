@@ -1,5 +1,5 @@
 {
-  "name": "Tidegrid configured market asset",
+  "name": "Quorelis configured market asset",
   "symbol": "YES",
   "cluster": "testnet",
   "tokenStandard": "SPL Token",
@@ -11,7 +11,7 @@
   "freezeAuthority": null,
   "onChainMetadata": false,
   "status": "deployed",
-  "transaction": "4WtfCbE4zcbU6xhvW3TcLCczo4ruzPac9Lvrcmiv56EFJBLq5ecDHXWyB9JpSWoUPrJz8xrANCs9hLoSYMiKenCi",
+  "transaction": "4WtfCbE4zcbU6xhvW3TcLCczo4ruzPac9Lvrcmiv56EFJBLq5ecDHXWyB9JpSwUPrJz8xrANCs9hLoSYMiKenCi",
   "explorer": "https://explorer.solana.com/address/EvatdLdQKLV5pMzp75dCbyWbVewckB2SXuEwnoHQfEbj?cluster=testnet",
   "verifiedAt": "2026-09-24T10:47:40.283Z"
 }
